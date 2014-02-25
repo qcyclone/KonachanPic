@@ -1,3 +1,3 @@
 这是一个自动下载Konachan.com图片的小脚本
-目前只能按http://konachan.com/post页面下爬取图片
+目前只能从 http://konachan.com/post 页面下爬取图片
 后续会加入更多的功能(多线程下载，按其他方法下载，GUI界面等等)
