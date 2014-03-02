@@ -7,6 +7,10 @@ import urllib2
 from sgmllib import SGMLParser
 
 
+url="http://konachan.com/post?page="
+startpage=endpage=startnum=1
+filepath=""
+
 class PICParser(SGMLParser):
 
     data=[]
@@ -46,51 +50,54 @@ def desc():
         输入盘符(例如:d)，即可将图片下载到d:/downloadpic/文件夹中
         """
 
-def download(dataset,num,path):
-    i=0
-    for url in dataset:
-        if i>=num:
-            filenum='%d' %i
-            filename=os.path.basename(url)
-            print "正在下载第"+filenum+"张图片……"
-            socket=urllib2.urlopen(url)
-            data=socket.read()
-            picpath=path
-            picpath=picpath+filename
-            with open(picpath,"wb") as jpg:
-                jpg.write(data)
-            socket.close()
-            print "第"+filenum+"张图片下载完毕！"
-        i+=1
+def download(url,path):
+    filename=os.path.basename(url)
+    socket=urllib2.urlopen(url)
+    data=socket.read()
+    path=path+filename
+    with open(path,"wb") as jpg:
+        jpg.write(data)
+    socket.close()
 
-if __name__=="__main__":
-    desc()
+
+def page_download(low,up):
+    up=up+1
+    for pagenum in range(low,up):
+        print "正在下载第 %d 页" % pagenum
+        dataurl=url+str(pagenum)
+        htmlcontent=getUrl(dataurl)
+        parser.feed(htmlcontent)
+        DataSet=parser.getData()
+        if pagenum==startpage:
+            i=startnum
+            for i in range(startnum,len(DataSet)):
+                print "正在下载第 %d 张图片" % i
+                download(DataSet[i],filepath)
+        else:
+            for i in range(1,len(DataSet)):
+                print "正在下载第 %d 张图片" % i
+                download(DataSet[i],filepath)
+        print "第 %d 页下载完毕！" % pagenum
+
+
+def init():
     las,nex=raw_input("请输入页数范围:").split(' ')
-    lasnum=int(las)
-    nexnum=int(nex)
+    startpage=int(las)
+    endpage=int(nex)
     startnum=raw_input("从第几张图片开始下载？")
     filepath=raw_input("将图片下载到哪个盘？")
     filepath=filepath+r":/downloadpic/"
     if not os.path.exists(filepath):
         os.mkdir(filepath)
 
-    pp=PICParser()
-    url="http://konachan.com/post?page="
+
+if __name__=="__main__":
+    parser=PICParser()
+    desc()
+    init()
     #htmlc=htmlcontent.htmlcontent
     #pp.feed(htmlc)
     #DataSet=pp.getData()
-    j=lasnum
-    for j in range(lasnum,nexnum+1):
-        print "正在下载第 %d 页" % j
-        dataurl=url+str(j)
-        htmlcontent=getUrl(dataurl)
-        pp.feed(htmlcontent)
-        DataSet=pp.getData()
-        if j==lasnum:
-            download(DataSet,int(startnum),filepath)
-        else:
-            download(DataSet,1,filepath)
-        print "第 %d 页下载完毕！" % j
-        j=j+1
+    page_download(startpage,endpage)
     print "本次下载任务圆满结束！！"
     #download(DataSet,0)
