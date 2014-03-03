@@ -3,31 +3,34 @@ import sys,os
 import re
 import time
 import urllib2
+import threading
 #import htmlcontent
 from sgmllib import SGMLParser
 
 
-url="http://konachan.com/post?page="
-startpage=endpage=startnum=1
-filepath=""
+url = "http://konachan.com/post?page="
+startpage = endpage = startnum = 1
+filepath = ""
+threadnum = 3
+event = threading.Event()
+lock = threading.Lock()
 
-class PICParser(SGMLParser):
+class PageParser(SGMLParser):
 
-    data=[]
-    ulswi=False
+    data = []
+    ulswi = False
     """Parse the web pages"""
     def start_ul(self,attrs):
         for k,v in attrs:
-            if k=='id' and v=='post-list-posts':
-                self.ulswi=True
+            if k == 'id' and v == 'post-list-posts':
+                self.ulswi = True
 
     def end_ul(self):
-        self.ulswi=False
+        self.ulswi = False
 
     def start_a(self,attrs):
         for k,v in attrs:
-            if k=='href' and self.ulswi==True and v[0]=='h':
-                #print v
+            if k == 'href' and self.ulswi == True and v[0] == 'h':
                 self.data.append(v)
 
     def getData(self):
@@ -51,28 +54,45 @@ def desc():
         """
 
 def download(url,path):
-    filename=os.path.basename(url)
-    socket=urllib2.urlopen(url)
-    data=socket.read()
-    path=path+filename
+    global threadnum
+    if threadnum <= 0:
+        event.clear()
+    else:
+        if lock.acquire():
+            threadnum = threadnum - 1
+            lock.release()
+        event.set()
+
+    filename = os.path.basename(url)
+    socket = urllib2.urlopen(url)
+    data = socket.read()
+    path = path + filename
+    print "正在下载图片"
     with open(path,"wb") as jpg:
         jpg.write(data)
     socket.close()
 
+    if lock.acquire():
+        threadnum = threadnum + 1
+        lock.release()
+    event.set()
 
 def page_download(low,up):
-    up=up+1
+    up = up + 1
+    global filepath
     for pagenum in range(low,up):
         print "正在下载第 %d 页" % pagenum
-        dataurl=url+str(pagenum)
-        htmlcontent=getUrl(dataurl)
+        dataurl = url + str(pagenum)
+        htmlcontent = getUrl(dataurl)
         parser.feed(htmlcontent)
-        DataSet=parser.getData()
-        if pagenum==startpage:
-            i=startnum
+        DataSet = parser.getData()
+        if pagenum == startpage:
             for i in range(startnum,len(DataSet)):
-                print "正在下载第 %d 张图片" % i
-                download(DataSet[i],filepath)
+                downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                downthread.start()
+                event.wait()
+                #print "正在下载第 %d 张图片" % i
+                #download(DataSet[i],filepath)
         else:
             for i in range(1,len(DataSet)):
                 print "正在下载第 %d 张图片" % i
@@ -85,6 +105,7 @@ def init():
     startpage=int(las)
     endpage=int(nex)
     startnum=raw_input("从第几张图片开始下载？")
+    global filepath
     filepath=raw_input("将图片下载到哪个盘？")
     filepath=filepath+r":/downloadpic/"
     if not os.path.exists(filepath):
@@ -92,7 +113,7 @@ def init():
 
 
 if __name__=="__main__":
-    parser=PICParser()
+    parser=PageParser()
     desc()
     init()
     #htmlc=htmlcontent.htmlcontent
