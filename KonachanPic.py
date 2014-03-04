@@ -4,6 +4,7 @@ import re
 import time
 import urllib2
 import threading
+import random
 #import htmlcontent
 from sgmllib import SGMLParser
 
@@ -38,6 +39,7 @@ class PageParser(SGMLParser):
 
 def getUrl(url):
     headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT6.1; en-US; rv:1.9.1.6) Firefox/3.5.6'}
+    #headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.2; WOW64) Maxthon/4.3.1.2000 Chrome/30.0.1599.101 Safari/537.36'}
     req = urllib2.Request(url, headers=headers)
     content = urllib2.urlopen(req).read()
     print "正在解析:%s" % url
@@ -63,6 +65,8 @@ def download(url,path):
             lock.release()
         event.set()
 
+    time.sleep(random.randint(3,6))
+
     filename = os.path.basename(url)
     socket = urllib2.urlopen(url)
     data = socket.read()
@@ -86,6 +90,7 @@ def page_download(low,up):
         htmlcontent = getUrl(dataurl)
         parser.feed(htmlcontent)
         DataSet = parser.getData()
+        print "共 %d 张图片" % len(DataSet)
         if pagenum == startpage:
             for i in range(startnum,len(DataSet)):
                 downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
@@ -102,6 +107,8 @@ def page_download(low,up):
 
 def init():
     las,nex=raw_input("请输入页数范围:").split(' ')
+    global startpage
+    global endpage
     startpage=int(las)
     endpage=int(nex)
     startnum=raw_input("从第几张图片开始下载？")
