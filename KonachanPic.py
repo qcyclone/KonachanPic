@@ -1,6 +1,5 @@
 #-*- coding:utf-8 -*-
 import sys,os
-import re
 import time
 import urllib2
 import threading
@@ -12,7 +11,7 @@ from sgmllib import SGMLParser
 url = "http://konachan.com/post?page="
 startpage = endpage = startnum = 1
 filepath = ""
-threadnum = 3
+threadnum = 2
 event = threading.Event()
 lock = threading.Lock()
 
@@ -56,30 +55,29 @@ def desc():
         """
 
 def download(url,path):
-    #global threadnum
-    #if threadnum <= 0:
-    #    event.clear()
-    #else:
-    #    if lock.acquire():
-    #        threadnum = threadnum - 1
-    #        lock.release()
-    #    event.set()
+    global threadnum
+    if lock.acquire():
+        if threadnum <= 1:
+            event.clear()
+        else:
+            event.set()
+        threadnum = threadnum - 1
+        lock.release()
 
-    #time.sleep(random.randint(3,6))
-
+    time.sleep(random.randint(3,5))
     filename = os.path.basename(url)
+    print " downloading......" 
     socket = urllib2.urlopen(url)
     data = socket.read()
     path = path + filename
-    print "正在下载图片"
     with open(path,"wb") as jpg:
         jpg.write(data)
     socket.close()
 
-    #if lock.acquire():
-    #    threadnum = threadnum + 1
-    #    lock.release()
-    #event.set()
+    if lock.acquire():
+        threadnum = threadnum + 1
+        lock.release()
+    event.set()
 
 def page_download(low,up):
     up = up + 1
@@ -94,32 +92,35 @@ def page_download(low,up):
         if pagenum == startpage:
             for i in range(startnum,len(DataSet)):
 
-                #downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
-                #downthread.start()
-                #event.wait()
+                downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                downthread.start()
+                event.wait()
                 
-                print "正在下载第 %d 张图片" % i
-                download(DataSet[i],filepath)
+                #print "正在下载第 %d 张图片" % i
+                #download(DataSet[i],filepath)
         else:
             for i in range(1,len(DataSet)):
                 print "正在下载第 %d 张图片" % i
 
-                #downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
-                #downthread.start()
-                #event.wait()
+                downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                downthread.start()
+                event.wait()
                 
-                print "正在下载第 %d 张图片" % i
-                download(DataSet[i],filepath)
+                #print "正在下载第 %d 张图片" % i
+                #download(DataSet[i],filepath)
         print "第 %d 页下载完毕！" % pagenum
+        del DataSet[:]
 
 
 def init():
     las,nex=raw_input("请输入页数范围:").split(' ')
     global startpage
     global endpage
+    global startnum
     startpage=int(las)
     endpage=int(nex)
-    startnum=raw_input("从第几张图片开始下载？")
+    startnumstr=raw_input("从第几张图片开始下载？")
+    startnum=int(startnumstr)
     global filepath
     filepath=raw_input("将图片下载到哪个盘？")
     filepath=filepath+r":/downloadpic/"
