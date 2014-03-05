@@ -56,16 +56,16 @@ def desc():
         """
 
 def download(url,path):
-    global threadnum
-    if threadnum <= 0:
-        event.clear()
-    else:
-        if lock.acquire():
-            threadnum = threadnum - 1
-            lock.release()
-        event.set()
+    #global threadnum
+    #if threadnum <= 0:
+    #    event.clear()
+    #else:
+    #    if lock.acquire():
+    #        threadnum = threadnum - 1
+    #        lock.release()
+    #    event.set()
 
-    time.sleep(random.randint(3,6))
+    #time.sleep(random.randint(3,6))
 
     filename = os.path.basename(url)
     socket = urllib2.urlopen(url)
@@ -76,10 +76,10 @@ def download(url,path):
         jpg.write(data)
     socket.close()
 
-    if lock.acquire():
-        threadnum = threadnum + 1
-        lock.release()
-    event.set()
+    #if lock.acquire():
+    #    threadnum = threadnum + 1
+    #    lock.release()
+    #event.set()
 
 def page_download(low,up):
     up = up + 1
@@ -93,13 +93,21 @@ def page_download(low,up):
         print "共 %d 张图片" % len(DataSet)
         if pagenum == startpage:
             for i in range(startnum,len(DataSet)):
-                downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
-                downthread.start()
-                event.wait()
-                #print "正在下载第 %d 张图片" % i
-                #download(DataSet[i],filepath)
+
+                #downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                #downthread.start()
+                #event.wait()
+                
+                print "正在下载第 %d 张图片" % i
+                download(DataSet[i],filepath)
         else:
             for i in range(1,len(DataSet)):
+                print "正在下载第 %d 张图片" % i
+
+                #downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                #downthread.start()
+                #event.wait()
+                
                 print "正在下载第 %d 张图片" % i
                 download(DataSet[i],filepath)
         print "第 %d 页下载完毕！" % pagenum
