@@ -64,7 +64,7 @@ def download(url,path):
         threadnum = threadnum - 1
         lock.release()
 
-    time.sleep(random.randint(3,5))
+    time.sleep(random.randint(8,15))
     filename = os.path.basename(url)
     print " downloading......" 
     socket = urllib2.urlopen(url)
@@ -88,21 +88,22 @@ def page_download(low,up):
         htmlcontent = getUrl(dataurl)
         parser.feed(htmlcontent)
         DataSet = parser.getData()
-        print "共 %d 张图片" % len(DataSet)
+        datacount = len(DataSet)
+        print "共 %d 张图片" % datacount
         if pagenum == startpage:
-            for i in range(startnum,len(DataSet)):
+            for i in range(startnum,datacount):
 
-                downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                downthread = threading.Thread(target=download,args=(DataSet[i-1],filepath))
                 downthread.start()
                 event.wait()
                 
                 #print "正在下载第 %d 张图片" % i
                 #download(DataSet[i],filepath)
         else:
-            for i in range(1,len(DataSet)):
+            for i in range(1,datacount):
                 print "正在下载第 %d 张图片" % i
 
-                downthread = threading.Thread(target=download,args=(DataSet[i],filepath))
+                downthread = threading.Thread(target=download,args=(DataSet[i-1],filepath))
                 downthread.start()
                 event.wait()
                 
