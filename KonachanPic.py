@@ -41,17 +41,17 @@ def getUrl(url):
     #headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.2; WOW64) Maxthon/4.3.1.2000 Chrome/30.0.1599.101 Safari/537.36'}
     req = urllib2.Request(url, headers=headers)
     content = urllib2.urlopen(req).read()
-    print "ÕıÔÚ½âÎö:%s" % url
+    print u"æ­£åœ¨è§£æ:%s" % url
     type = sys.getfilesystemencoding()
     return content.decode("UTF-8").encode(type)
 
 def desc():
-    print """
-        Í¼Æ¬ÏÂÔØÈí¼ş¼òÒªÊ¹ÓÃËµÃ÷
-        ÅÀÈ¡konachan.comÉÏµÄÍ¼Æ¬
-        ÊäÈëÒ³Êı·¶Î§(Àı:15 20)»Ø³µ£¬¼´¿ÉÏÂÔØ15Ò³µ½20Ò³µÄËùÓĞÍ¼Æ¬
-        ½ô½Ó×ÅÊäÈë¿ªÊ¼ÏÂÔØµÄÎ»ÖÃ(Àı:5)£¬¼´¿É´Ó15Ò³µÄµÚ5ÕÅÍ¼Æ¬¿ªÊ¼ÏÂÔØ
-        ÊäÈëÅÌ·û(ÀıÈç:d)£¬¼´¿É½«Í¼Æ¬ÏÂÔØµ½d:/downloadpic/ÎÄ¼ş¼ĞÖĞ
+    print u"""
+        å›¾ç‰‡ä¸‹è½½è½¯ä»¶ç®€è¦ä½¿ç”¨è¯´æ˜
+        çˆ¬å–konachan.comä¸Šçš„å›¾ç‰‡
+        è¾“å…¥é¡µæ•°èŒƒå›´(ä¾‹:15 20)å›è½¦ï¼Œå³å¯ä¸‹è½½15é¡µåˆ°20é¡µçš„æ‰€æœ‰å›¾ç‰‡
+        ç´§æ¥ç€è¾“å…¥å¼€å§‹ä¸‹è½½çš„ä½ç½®(ä¾‹:5)ï¼Œå³å¯ä»15é¡µçš„ç¬¬5å¼ å›¾ç‰‡å¼€å§‹ä¸‹è½½
+        è¾“å…¥ç›˜ç¬¦(ä¾‹å¦‚:d)ï¼Œå³å¯å°†å›¾ç‰‡ä¸‹è½½åˆ°d:/downloadpic/æ–‡ä»¶å¤¹ä¸­
         """
 
 def download(url,path):
@@ -83,13 +83,13 @@ def page_download(low,up):
     up = up + 1
     global filepath
     for pagenum in range(low,up):
-        print "ÕıÔÚÏÂÔØµÚ %d Ò³" % pagenum
+        print u"æ­£åœ¨ä¸‹è½½ç¬¬ %d é¡µ" % pagenum
         dataurl = url + str(pagenum)
         htmlcontent = getUrl(dataurl)
         parser.feed(htmlcontent)
         DataSet = parser.getData()
         datacount = len(DataSet)
-        print "¹² %d ÕÅÍ¼Æ¬" % datacount
+        print u"å…± %d å¼ å›¾ç‰‡" % datacount
         if pagenum == startpage:
             for i in range(startnum,datacount):
 
@@ -97,33 +97,33 @@ def page_download(low,up):
                 downthread.start()
                 event.wait()
                 
-                #print "ÕıÔÚÏÂÔØµÚ %d ÕÅÍ¼Æ¬" % i
+                #print "æ­£åœ¨ä¸‹è½½ç¬¬ %d å¼ å›¾ç‰‡" % i
                 #download(DataSet[i],filepath)
         else:
             for i in range(1,datacount):
-                print "ÕıÔÚÏÂÔØµÚ %d ÕÅÍ¼Æ¬" % i
+                print u"æ­£åœ¨ä¸‹è½½ç¬¬ %d å¼ å›¾ç‰‡" % i
 
                 downthread = threading.Thread(target=download,args=(DataSet[i-1],filepath))
                 downthread.start()
                 event.wait()
                 
-                #print "ÕıÔÚÏÂÔØµÚ %d ÕÅÍ¼Æ¬" % i
+                #print "æ­£åœ¨ä¸‹è½½ç¬¬ %d å¼ å›¾ç‰‡" % i
                 #download(DataSet[i],filepath)
-        print "µÚ %d Ò³ÏÂÔØÍê±Ï£¡" % pagenum
+        print u"ç¬¬ %d é¡µä¸‹è½½å®Œæ¯•ï¼" % pagenum
         del DataSet[:]
 
 
 def init():
-    las,nex=raw_input("ÇëÊäÈëÒ³Êı·¶Î§:").split(' ')
+    las,nex=raw_input(u"è¯·è¾“å…¥é¡µæ•°èŒƒå›´:".encode('gbk')).split(' ')
     global startpage
     global endpage
     global startnum
     startpage=int(las)
     endpage=int(nex)
-    startnumstr=raw_input("´ÓµÚ¼¸ÕÅÍ¼Æ¬¿ªÊ¼ÏÂÔØ£¿")
+    startnumstr=raw_input(u"ä»ç¬¬å‡ å¼ å›¾ç‰‡å¼€å§‹ä¸‹è½½ï¼Ÿ".encode('gbk'))
     startnum=int(startnumstr)
     global filepath
-    filepath=raw_input("½«Í¼Æ¬ÏÂÔØµ½ÄÄ¸öÅÌ£¿")
+    filepath=raw_input(u"å°†å›¾ç‰‡ä¸‹è½½åˆ°å“ªä¸ªç›˜ï¼Ÿ".encode('gbk'))
     filepath=filepath+r":/downloadpic/"
     if not os.path.exists(filepath):
         os.mkdir(filepath)
@@ -137,5 +137,5 @@ if __name__=="__main__":
     #pp.feed(htmlc)
     #DataSet=pp.getData()
     page_download(startpage,endpage)
-    print "±¾´ÎÏÂÔØÈÎÎñÔ²Âú½áÊø£¡£¡"
+    print u"æœ¬æ¬¡ä¸‹è½½ä»»åŠ¡åœ†æ»¡ç»“æŸï¼ï¼"
     #download(DataSet,0)
